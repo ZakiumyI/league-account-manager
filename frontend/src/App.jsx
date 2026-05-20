@@ -1,122 +1,112 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import axios from "axios";
+import AccountGrid from "./components/AccountGrid";
+import AccountForm from "./components/AccountForm";
 
-function App() {
-  const [count, setCount] = useState(0)
+const API = "http://localhost:3000";
+
+export default function App() {
+  const [accounts, setAccounts] = useState([]);
+  const [openForm, setOpenForm] = useState(false);
+
+  const fetchAccounts = async () => {
+    try {
+      const res = await axios.get(`${API}/accounts`);
+      setAccounts(res.data);
+    } catch (error) {
+      console.error("Error al sincronizar el servidor central:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchAccounts();
+  }, []);
+
+  const handleAccountCreated = (newAccount) => {
+    // Si la API devuelve la estructura anidada { account: {...} } la extrae correctamente, si no, usa el objeto plano
+    const fallbackAccount = newAccount?.account ? newAccount.account : newAccount;
+    setAccounts((prev) => [fallbackAccount, ...prev]);
+    setOpenForm(false);
+  };
+
+  const handleDelete = async (id) => {
+    try {
+      await axios.delete(`${API}/accounts/${id}`);
+      fetchAccounts();
+    } catch (error) {
+      console.error("Error en el protocolo de eliminación:", error);
+    }
+  };
+
+  const handleRefresh = async (id) => {
+    try {
+      await axios.post(`${API}/accounts/${id}/refresh`);
+      fetchAccounts();
+    } catch (error) {
+      console.error("Error en la solicitud de sincronización:", error);
+    }
+  };
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+    <div className="relative min-h-screen bg-black text-zinc-100 p-4 md:p-8 overflow-x-hidden selection:bg-cyan-500 selection:text-black">
+      
+      {/* CAPA DE CAPA ESTÉTICA: Rejilla digital de fondo y destellos Sci-Fi */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(6,182,212,0.08),transparent_50%)] pointer-events-none" />
+      <div 
+        className="absolute inset-0 pointer-events-none opacity-5"
+        style={{
+          backgroundImage: `linear-gradient(to right, #22d3ee 1px, transparent 1px), linear-gradient(to bottom, #22d3ee 1px, transparent 1px)`,
+          backgroundSize: "40px 40px"
+        }}
+      />
 
-      <div className="ticks"></div>
+      <div className="relative z-10 max-w-7xl mx-auto">
+        
+        {/* PANEL DE CONTROL / INTERFAZ SUPERIOR */}
+        <header className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-12 pb-6 border-b border-zinc-900/80">
+          <div className="flex items-center space-x-3">
+            <div className="w-2 h-6 bg-cyan-400 rounded-sm animate-pulse" />
+            <div>
+              <h1 className="text-xl md:text-2xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-zinc-100 via-zinc-200 to-zinc-400 font-mono">
+                LEAGUE_ACCOUNT_MANAGER
+              </h1>
+              <p className="text-[10px] text-cyan-400/60 tracking-widest font-mono uppercase mt-0.5">
+                // Terminal Operativa del Servidor
+              </p>
+            </div>
+          </div>
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+          <motion.button
+            whileHover={{ scale: 1.03, boxShadow: "0 0 20px rgba(34,211,238,0.4)" }}
+            whileTap={{ scale: 0.97 }}
+            onClick={() => setOpenForm(true)}
+            className="w-full sm:w-auto px-5 py-2.5 font-mono text-xs font-bold tracking-widest bg-cyan-400 text-zinc-950 rounded border border-cyan-300 shadow-[0_0_15px_rgba(6,182,212,0.2)] transition-colors hover:bg-cyan-300 cursor-pointer text-center"
+          >
+            + VINCULAR_NUEVA_CUENTA
+          </motion.button>
+        </header>
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+        {/* MODAL DE REGISTRO CON ANIMACIÓN CONTROLADA */}
+        <AnimatePresence>
+          {openForm && (
+            <AccountForm
+              onClose={() => setOpenForm(false)}
+              onCreated={handleAccountCreated}
+            />
+          )}
+        </AnimatePresence>
+
+        {/* CONTENEDOR PRINCIPAL DEL GRID */}
+        <main>
+          <AccountGrid
+            accounts={accounts}
+            onDelete={handleDelete}
+            onRefresh={handleRefresh}
+          />
+        </main>
+        
+      </div>
+    </div>
+  );
 }
-
-export default App
